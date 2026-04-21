@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Folder } from 'lucide-react';
 import Terminal from './components/Terminal';
 import ErrorModal from './components/ErrorModal';
+import Taskbar from './components/Taskbar';
 
 export default function App() {
 	const [isSystemCrashed, setIsSystemCrashed] = useState(true);
@@ -24,7 +25,8 @@ export default function App() {
 				<Terminal />
 			</div>
 
-			<div className="h-10 bg-win-gray border-t-2 border-white shadow-[0_-1px_2px_rgba(0,0,0,0.2)]"></div>
+			<Taskbar />
+
 		</div>
 	);
 }

@@ -27,15 +27,20 @@ A list of the toools used to build New Leaf:
 ## Developer Log (for Hack Club's Sleepover event!)
 This is an hour by hour log of everything I worked on and when each feature was implemented.
 
-1-2. Mostly project set up.
+1. Mostly project set up.
     * Set up project repo + boilerplate for my Vite React app
     * Set up README file with the project log
     * Created the Tailwind CSS custom styling palette
     * Installed and configured 98.css library
-    * Designed and coded up the home page main window
+2.  Designed and coded up the home page main window
         - This part took really long (dependency issues) so I decided to commit the first 2 hours together
     * Set up components for `ErrorModal.tsx`, `Terminal.tsx`, `TypewriterText.tsx`, `Taskbar.tsx`
-3. 
+3. Added custom commands including ls, cd, pwd
+    * ls - Lists the contents of the current directory
+    * cd - Changes the current directory (including cd .. to go back)
+    * Updated the Taskbar with Microsoft logo
+    * Planted secret folders and corrupted files needed for challenge #1
+4. 
 
 ---
 <div align="center">
