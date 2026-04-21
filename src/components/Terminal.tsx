@@ -123,6 +123,57 @@ export default function Terminal() {
 						newHistory.push({ id: Date.now() + 1, type: 'error', text: `cd: ${target}: No such file or directory` });
 					}
 					break;
+				case 'man':
+					const manualTarget = args[0];
+					if (!manualTarget) {
+						newHistory.push({ id: Date.now() + 1, type: 'output', text: 'What manual page do you want?' });
+					} else {
+						const manuals: Record<string, string> = {
+						'help': 'help - Displays a list of available commands.',
+						'clear': 'clear - Clears the terminal screen.',
+						'echo': 'echo [text] - Prints text to the terminal.',
+						'ls': 'ls - Lists information about the files in the current directory.',
+						'cd': 'cd [dir] - Changes the current directory. Use "cd .." to go back.',
+						'rm': 'rm [file] - Removes a specified file.',
+						'man': 'man [command] - Displays the manual for a given command.'
+						};
+						
+						if (manuals[manualTarget]) {
+						newHistory.push({ id: Date.now() + 1, type: 'output', text: manuals[manualTarget] });
+						} else {
+						newHistory.push({ id: Date.now() + 1, type: 'error', text: `No manual entry for ${manualTarget}` });
+						}
+					}
+					break;
+					case 'rm':
+						const rmTarget = args[0];
+						
+						if (!rmTarget) {
+							newHistory.push({ id: Date.now() + 1, type: 'error', text: 'rm: missing operand' });
+						} else if (currentDir[rmTarget]) {
+							
+							if (currentDir[rmTarget].type === 'DIR') {
+							newHistory.push({ id: Date.now() + 1, type: 'error', text: `rm: cannot remove '${rmTarget}': Is a directory` });
+							} else {
+							const newFS = JSON.parse(JSON.stringify(fileSystem));
+							
+							let navTarget: any = newFS;
+							for (const folder of currentPath) {
+								if (navTarget[folder]?.children) {
+								navTarget = navTarget[folder].children;
+								} else if (navTarget.children && navTarget.children[folder]) {
+								navTarget = navTarget.children[folder].children;
+								}
+							}
+							
+							delete navTarget[rmTarget];
+							setFileSystem(newFS);
+							
+							}
+						} else {
+							newHistory.push({ id: Date.now() + 1, type: 'error', text: `rm: cannot remove '${rmTarget}': No such file or directory` });
+						}
+					break;
 				default:
 					newHistory.push({ id: Date.now() + 1, type: 'error', text: `Bad command or file name: "${cmd}"` });
 			}

@@ -1,6 +1,6 @@
 # Ditch Explorer
 
-One sentence summary
+An interactive, Windows 98 themed game to teach terminal commands! It follows a storyline where players need to fix a crashed computer system.
 
 ## Features [WIP]
 **yada yada yada**
@@ -21,8 +21,8 @@ A list of the toools used to build New Leaf:
     * Made it easy to ensure the app remains fully responsive on both mobile phones and desktop screens
 5. 98.css
     * A styling library for adding the retro Windows 98 aesthetic to the game
-6. React Router (version 6)
-    * Handles all of the navigation between different pages
+6. React Draggable
+    * description
 
 ## Developer Log (for Hack Club's Sleepover event!)
 This is an hour by hour log of everything I worked on and when each feature was implemented.
@@ -40,7 +40,12 @@ This is an hour by hour log of everything I worked on and when each feature was 
     * cd - Changes the current directory (including cd .. to go back)
     * Updated the Taskbar with Microsoft logo
     * Planted secret folders and corrupted files needed for challenge #1
-4. 
+4. Finished challenge #1
+    * Created dragabble `Window.tsx` component
+    * Added a clickable desktop icon that opens up the instructions for the first challenge
+    * Created a hint system inside the instructions file
+    * Taught the terminal the man command! Players can now look up how different tools work inside the game
+5. 
 
 ---
 <div align="center">
