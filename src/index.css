@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@theme {
+	--color-win-pink: #ffb6c1;
+	--color-win-hotpink: #ff69b4;
+	--color-win-blue: #0000a8;
+	--color-win-gray: #c0c0c0;
+	--color-win-darkgray: #808080;
+}
+
+@layer base {
+	body {
+		@apply bg-win-pink overflow-hidden select-none;
+		font-family: 'Tahoma', 'MS Sans Serif', sans-serif;
+	}
+}
+
+.scanlines {
+	background: linear-gradient(to bottom,
+			rgba(255, 255, 255, 0),
+			rgba(255, 255, 255, 0) 50%,
+			rgba(0, 0, 0, 0.1) 50%,
+			rgba(0, 0, 0, 0.1));
+	background-size: 100% 4px;
+}
