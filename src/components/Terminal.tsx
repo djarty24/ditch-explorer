@@ -89,7 +89,7 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 
 			switch (cmd.toLowerCase()) {
 				case 'help':
-					newHistory.push({ id: Date.now() + 1, type: 'output', text: 'Available commands: help, clear, echo, ls, cd, rm, mkdir, mv, man' });
+					newHistory.push({ id: Date.now() + 1, type: 'output', text: 'Available commands: help, clear, echo, ls, cd, rm, mkdir, mv, ping, man' });
 					break;
 				case 'clear':
 					setHistory(history.slice(0, 4));
@@ -192,6 +192,20 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 						}
 					}
 					break;
+				case 'ping':
+					const pingTarget = args[0];
+					if (!pingTarget) {
+						newHistory.push({ id: Date.now() + 1, type: 'error', text: 'ping: missing host operand' });
+					} else {
+						newHistory.push({ id: Date.now() + 1, type: 'output', text: `Pinging ${pingTarget} with 32 bytes of data:` });
+						newHistory.push({ id: Date.now() + 2, type: 'output', text: `Reply from ${pingTarget}: bytes=32 time=14ms TTL=119` });
+						newHistory.push({ id: Date.now() + 3, type: 'output', text: `Reply from ${pingTarget}: bytes=32 time=15ms TTL=119` });
+						newHistory.push({ id: Date.now() + 4, type: 'output', text: `Reply from ${pingTarget}: bytes=32 time=13ms TTL=119` });
+						newHistory.push({ id: Date.now() + 5, type: 'output', text: `Ping statistics for ${pingTarget}:\n    Packets: Sent = 3, Received = 3, Lost = 0 (0% loss)` });
+
+						if (onSystemUpdate) onSystemUpdate('ping', pingTarget);
+					}
+					break;
 				case 'man':
 					const manualTarget = args[0];
 					if (!manualTarget) {
@@ -206,6 +220,7 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 							'rm': 'rm [file] - Removes a specified file.',
 							'mkdir': 'mkdir [dir] - Creates a new directory.',
 							'mv': 'mv [source] [destination] - Moves a file to a destination directory.',
+							'ping': 'ping [computer-name] - Sends a small test signal to another computer and waits for a reply to check if it is online and connected.',
 							'man': 'man [command] - Displays the manual for a given command.'
 						};
 						if (manuals[manualTarget]) {

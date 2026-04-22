@@ -50,7 +50,12 @@ This is an hour by hour log of everything I worked on and when each feature was 
     * Built a central state tracker in the main app to monito rterminal activity
         - Game can detect when specific files are deleted or moved and updates the terminal accordingly
     * Created a `SuccessModal.tsx` component that sends a level complete message to indicate when the user has solved the current puzzle
-6. 
+6. Working on challenge #3, almost done but not quite yet
+    * Added an About me folder (will fill this in later with project details)
+    * Added ping command challenge
+        - It was challenging to figure out how to explain this in an intuitive way
+    * Updated man pages for the commands to have clearer explanations
+7. 
 
 ---
 <div align="center">
