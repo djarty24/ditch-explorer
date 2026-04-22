@@ -39,9 +39,12 @@ type HistoryLine = {
 	text: string;
 };
 
-export default function Terminal() {
-	const [input, setInput] = useState('');
+interface TerminalProps {
+	onSystemUpdate?: (action: string, target: string) => void;
+}
 
+export default function Terminal({ onSystemUpdate }: TerminalProps) {
+	const [input, setInput] = useState('');
 	const [fileSystem, setFileSystem] = useState(initialFileSystem);
 	const [currentPath, setCurrentPath] = useState<string[]>(['C:']);
 
@@ -86,7 +89,7 @@ export default function Terminal() {
 
 			switch (cmd.toLowerCase()) {
 				case 'help':
-					newHistory.push({ id: Date.now() + 1, type: 'output', text: 'Available commands: help, clear, echo, ls, cd' });
+					newHistory.push({ id: Date.now() + 1, type: 'output', text: 'Available commands: help, clear, echo, ls, cd, rm, mkdir, mv, man' });
 					break;
 				case 'clear':
 					setHistory(history.slice(0, 4));
@@ -123,56 +126,94 @@ export default function Terminal() {
 						newHistory.push({ id: Date.now() + 1, type: 'error', text: `cd: ${target}: No such file or directory` });
 					}
 					break;
+				case 'rm':
+					const rmTarget = args[0];
+					if (!rmTarget) {
+						newHistory.push({ id: Date.now() + 1, type: 'error', text: 'rm: missing operand' });
+					} else if (currentDir[rmTarget]) {
+						if (currentDir[rmTarget].type === 'DIR') {
+							newHistory.push({ id: Date.now() + 1, type: 'error', text: `rm: cannot remove '${rmTarget}': Is a directory` });
+						} else {
+							const newFS = JSON.parse(JSON.stringify(fileSystem));
+							let navTarget: any = newFS;
+							for (const folder of currentPath) {
+								if (navTarget[folder]?.children) navTarget = navTarget[folder].children;
+								else if (navTarget.children && navTarget.children[folder]) navTarget = navTarget.children[folder].children;
+							}
+							delete navTarget[rmTarget];
+							setFileSystem(newFS);
+							if (onSystemUpdate) onSystemUpdate('rm', rmTarget);
+						}
+					} else {
+						newHistory.push({ id: Date.now() + 1, type: 'error', text: `rm: cannot remove '${rmTarget}': No such file or directory` });
+					}
+					break;
+				case 'mkdir':
+					const dirName = args[0];
+					if (!dirName) {
+						newHistory.push({ id: Date.now() + 1, type: 'error', text: 'mkdir: missing operand' });
+					} else {
+						const newFS = JSON.parse(JSON.stringify(fileSystem));
+						let navTarget: any = newFS;
+						for (const folder of currentPath) {
+							if (navTarget[folder]?.children) navTarget = navTarget[folder].children;
+							else if (navTarget.children && navTarget.children[folder]) navTarget = navTarget.children[folder].children;
+						}
+						if (navTarget[dirName]) {
+							newHistory.push({ id: Date.now() + 1, type: 'error', text: `mkdir: cannot create directory '${dirName}': File exists` });
+						} else {
+							navTarget[dirName] = { type: 'DIR', children: {} };
+							setFileSystem(newFS);
+						}
+					}
+					break;
+				case 'mv':
+					const src = args[0];
+					const dst = args[1];
+					if (!src || !dst) {
+						newHistory.push({ id: Date.now() + 1, type: 'error', text: 'mv: missing file operand' });
+					} else {
+						const newFS = JSON.parse(JSON.stringify(fileSystem));
+						let navTarget: any = newFS;
+						for (const folder of currentPath) {
+							if (navTarget[folder]?.children) navTarget = navTarget[folder].children;
+							else if (navTarget.children && navTarget.children[folder]) navTarget = navTarget.children[folder].children;
+						}
+						if (!navTarget[src]) {
+							newHistory.push({ id: Date.now() + 1, type: 'error', text: `mv: cannot stat '${src}': No such file` });
+						} else if (!navTarget[dst] || navTarget[dst].type !== 'DIR') {
+							newHistory.push({ id: Date.now() + 1, type: 'error', text: `mv: cannot move to '${dst}': Not a directory` });
+						} else {
+							if (!navTarget[dst].children) navTarget[dst].children = {};
+							navTarget[dst].children[src] = navTarget[src];
+							delete navTarget[src];
+							setFileSystem(newFS);
+							if (onSystemUpdate) onSystemUpdate('mv', src);
+						}
+					}
+					break;
 				case 'man':
 					const manualTarget = args[0];
 					if (!manualTarget) {
 						newHistory.push({ id: Date.now() + 1, type: 'output', text: 'What manual page do you want?' });
 					} else {
 						const manuals: Record<string, string> = {
-						'help': 'help - Displays a list of available commands.',
-						'clear': 'clear - Clears the terminal screen.',
-						'echo': 'echo [text] - Prints text to the terminal.',
-						'ls': 'ls - Lists information about the files in the current directory.',
-						'cd': 'cd [dir] - Changes the current directory. Use "cd .." to go back.',
-						'rm': 'rm [file] - Removes a specified file.',
-						'man': 'man [command] - Displays the manual for a given command.'
+							'help': 'help - Displays a list of available commands.',
+							'clear': 'clear - Clears the terminal screen.',
+							'echo': 'echo [text] - Prints text to the terminal.',
+							'ls': 'ls - Lists information about the files in the current directory.',
+							'cd': 'cd [dir] - Changes the current directory. Use "cd .." to go back.',
+							'rm': 'rm [file] - Removes a specified file.',
+							'mkdir': 'mkdir [dir] - Creates a new directory.',
+							'mv': 'mv [source] [destination] - Moves a file to a destination directory.',
+							'man': 'man [command] - Displays the manual for a given command.'
 						};
-						
 						if (manuals[manualTarget]) {
-						newHistory.push({ id: Date.now() + 1, type: 'output', text: manuals[manualTarget] });
+							newHistory.push({ id: Date.now() + 1, type: 'output', text: manuals[manualTarget] });
 						} else {
-						newHistory.push({ id: Date.now() + 1, type: 'error', text: `No manual entry for ${manualTarget}` });
+							newHistory.push({ id: Date.now() + 1, type: 'error', text: `No manual entry for ${manualTarget}` });
 						}
 					}
-					break;
-					case 'rm':
-						const rmTarget = args[0];
-						
-						if (!rmTarget) {
-							newHistory.push({ id: Date.now() + 1, type: 'error', text: 'rm: missing operand' });
-						} else if (currentDir[rmTarget]) {
-							
-							if (currentDir[rmTarget].type === 'DIR') {
-							newHistory.push({ id: Date.now() + 1, type: 'error', text: `rm: cannot remove '${rmTarget}': Is a directory` });
-							} else {
-							const newFS = JSON.parse(JSON.stringify(fileSystem));
-							
-							let navTarget: any = newFS;
-							for (const folder of currentPath) {
-								if (navTarget[folder]?.children) {
-								navTarget = navTarget[folder].children;
-								} else if (navTarget.children && navTarget.children[folder]) {
-								navTarget = navTarget.children[folder].children;
-								}
-							}
-							
-							delete navTarget[rmTarget];
-							setFileSystem(newFS);
-							
-							}
-						} else {
-							newHistory.push({ id: Date.now() + 1, type: 'error', text: `rm: cannot remove '${rmTarget}': No such file or directory` });
-						}
 					break;
 				default:
 					newHistory.push({ id: Date.now() + 1, type: 'error', text: `Bad command or file name: "${cmd}"` });

@@ -45,7 +45,12 @@ This is an hour by hour log of everything I worked on and when each feature was 
     * Added a clickable desktop icon that opens up the instructions for the first challenge
     * Created a hint system inside the instructions file
     * Taught the terminal the man command! Players can now look up how different tools work inside the game
-5. 
+5. Finished creating challenge #2
+    * Implemented the mkdir and mv commands
+    * Built a central state tracker in the main app to monito rterminal activity
+        - Game can detect when specific files are deleted or moved and updates the terminal accordingly
+    * Created a `SuccessModal.tsx` component that sends a level complete message to indicate when the user has solved the current puzzle
+6. 
 
 ---
 <div align="center">
