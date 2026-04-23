@@ -20,6 +20,12 @@ const initialFileSystem: Record<string, FileNode> = {
 						children: {
 							'corrupted_file.sys': { type: 'FILE', content: '0xDEADBEEF FATAL CORRUPTION' }
 						}
+					},
+					'Logs': {
+						type: 'DIR',
+						children: {
+							'server_logs.txt': { type: 'FILE', content: '[08:00] Start boot sequence\n[08:01] Loading modules\n[08:02] Network connection attempt\n[08:03] Admin password set to: hackclub_rules\n[08:04] Sleep mode activated\n[08:05] End of log.' }
+						}
 					}
 				}
 			},
@@ -89,7 +95,7 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 
 			switch (cmd.toLowerCase()) {
 				case 'help':
-					newHistory.push({ id: Date.now() + 1, type: 'output', text: 'Available commands: help, clear, echo, ls, cd, rm, mkdir, mv, ping, man' });
+					newHistory.push({ id: Date.now() + 1, type: 'output', text: 'Available commands: help, clear, echo, ls, cd, rm, mkdir, mv, ping, cat, grep, login, man' });
 					break;
 				case 'clear':
 					setHistory(history.slice(0, 4));
@@ -206,6 +212,55 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 						if (onSystemUpdate) onSystemUpdate('ping', pingTarget);
 					}
 					break;
+				case 'cat':
+					const catTarget = args[0];
+					if (!catTarget) {
+						newHistory.push({ id: Date.now() + 1, type: 'error', text: 'cat: missing file operand' });
+					} else if (currentDir[catTarget]) {
+						if (currentDir[catTarget].type === 'DIR') {
+							newHistory.push({ id: Date.now() + 1, type: 'error', text: `cat: ${catTarget}: Is a directory` });
+						} else {
+							const lines = currentDir[catTarget].content.split('\n');
+							lines.forEach((line: string, i: number) => {
+								newHistory.push({ id: Date.now() + i + 1, type: 'output', text: line });
+							});
+						}
+					} else {
+						newHistory.push({ id: Date.now() + 1, type: 'error', text: `cat: ${catTarget}: No such file or directory` });
+					}
+					break;
+				case 'grep':
+					const searchTerm = args[0];
+					const grepFile = args[1];
+					if (!searchTerm || !grepFile) {
+						newHistory.push({ id: Date.now() + 1, type: 'error', text: 'grep: missing arguments. Usage: grep [word] [file]' });
+					} else if (currentDir[grepFile]) {
+						if (currentDir[grepFile].type === 'DIR') {
+							newHistory.push({ id: Date.now() + 1, type: 'error', text: `grep: ${grepFile}: Is a directory` });
+						} else {
+							const lines = currentDir[grepFile].content.split('\n');
+							const matches = lines.filter((line: string) => line.toLowerCase().includes(searchTerm.toLowerCase()));
+							if (matches.length > 0) {
+								matches.forEach((match: string, i: number) => {
+									newHistory.push({ id: Date.now() + i + 1, type: 'output', text: match });
+								});
+							}
+						}
+					} else {
+						newHistory.push({ id: Date.now() + 1, type: 'error', text: `grep: ${grepFile}: No such file or directory` });
+					}
+					break;
+				case 'login':
+					const passwordAttempt = args[0];
+					if (!passwordAttempt) {
+						newHistory.push({ id: Date.now() + 1, type: 'error', text: 'login: missing password. Usage: login [password]' });
+					} else if (passwordAttempt === 'hackclub_rules') {
+						newHistory.push({ id: Date.now() + 1, type: 'system', text: 'Authentication successful. Admin access granted.' });
+						if (onSystemUpdate) onSystemUpdate('login', 'success');
+					} else {
+						newHistory.push({ id: Date.now() + 1, type: 'error', text: 'Access denied. Invalid password.' });
+					}
+					break;
 				case 'man':
 					const manualTarget = args[0];
 					if (!manualTarget) {
@@ -221,6 +276,9 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 							'mkdir': 'mkdir [dir] - Creates a new directory.',
 							'mv': 'mv [source] [destination] - Moves a file to a destination directory.',
 							'ping': 'ping [computer-name] - Sends a small test signal to another computer and waits for a reply to check if it is online and connected.',
+							'cat': 'cat [file] - Reads a text file and prints everything inside it to the screen.',
+							'grep': 'grep [word] [file] - Searches inside a file and only prints the lines that contain the word you are looking for.',
+							'login': 'login [password] - A special system command used to unlock the computer.',
 							'man': 'man [command] - Displays the manual for a given command.'
 						};
 						if (manuals[manualTarget]) {

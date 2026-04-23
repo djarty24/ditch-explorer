@@ -55,7 +55,11 @@ This is an hour by hour log of everything I worked on and when each feature was 
     * Added ping command challenge
         - It was challenging to figure out how to explain this in an intuitive way
     * Updated man pages for the commands to have clearer explanations
-7. 
+7. Finished challenge #3 and #4
+    * Fixed level 3 instructions
+    * Added cat and login commands to man page
+    * Added Logs directory for challenge 4
+    * Added bobbing effect for level 1 challenge as an indicator of where to find the instructions
 
 ---
 <div align="center">
