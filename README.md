@@ -60,6 +60,12 @@ This is an hour by hour log of everything I worked on and when each feature was 
     * Added cat and login commands to man page
     * Added Logs directory for challenge 4
     * Added bobbing effect for level 1 challenge as an indicator of where to find the instructions
+8. Started on challenge #5 (the boss battle!)
+    * This is the grand finale of the game so I want it to be big!
+    * Mainly created a `MalwareModal.tsx` popup with instructions for the final level
+    * Accumulation of all of the commands required
+    * Updated props for the terminal
+9. 
 
 ---
 <div align="center">

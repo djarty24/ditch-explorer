@@ -12,6 +12,7 @@ const initialFileSystem: Record<string, FileNode> = {
 	'C:': {
 		type: 'DIR',
 		children: {
+			'network_log.txt': { type: 'FILE', content: '[14:00] Normal traffic\n[14:01] Suspicious packet received\n[14:02] MALWARE DOWNLOADED TO: C:\\Downloads\n[14:03] dolphin.exe active' },
 			'System': {
 				type: 'DIR',
 				children: {
@@ -32,7 +33,8 @@ const initialFileSystem: Record<string, FileNode> = {
 			'Downloads': {
 				type: 'DIR',
 				children: {
-					'display.dll': { type: 'FILE', content: 'BINARY_DRIVER_DATA' }
+					'display.dll': { type: 'FILE', content: 'BINARY_DRIVER_DATA' },
+					'dolphin.exe': { type: 'FILE', content: '101010100101010 I AM A DOLPHIN 101010101' }
 				}
 			}
 		}
@@ -46,7 +48,7 @@ type HistoryLine = {
 };
 
 interface TerminalProps {
-	onSystemUpdate?: (action: string, target: string) => void;
+	onSystemUpdate?: (action: string, target: string, path: string[]) => void;
 }
 
 export default function Terminal({ onSystemUpdate }: TerminalProps) {
@@ -148,7 +150,7 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 							}
 							delete navTarget[rmTarget];
 							setFileSystem(newFS);
-							if (onSystemUpdate) onSystemUpdate('rm', rmTarget);
+							if (onSystemUpdate) onSystemUpdate('rm', rmTarget, currentPath);
 						}
 					} else {
 						newHistory.push({ id: Date.now() + 1, type: 'error', text: `rm: cannot remove '${rmTarget}': No such file or directory` });
@@ -194,7 +196,7 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 							navTarget[dst].children[src] = navTarget[src];
 							delete navTarget[src];
 							setFileSystem(newFS);
-							if (onSystemUpdate) onSystemUpdate('mv', src);
+							if (onSystemUpdate) onSystemUpdate('mv', src, currentPath);
 						}
 					}
 					break;
@@ -209,7 +211,7 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 						newHistory.push({ id: Date.now() + 4, type: 'output', text: `Reply from ${pingTarget}: bytes=32 time=13ms TTL=119` });
 						newHistory.push({ id: Date.now() + 5, type: 'output', text: `Ping statistics for ${pingTarget}:\n    Packets: Sent = 3, Received = 3, Lost = 0 (0% loss)` });
 
-						if (onSystemUpdate) onSystemUpdate('ping', pingTarget);
+						if (onSystemUpdate) onSystemUpdate('ping', pingTarget, currentPath);
 					}
 					break;
 				case 'cat':
@@ -256,7 +258,7 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 						newHistory.push({ id: Date.now() + 1, type: 'error', text: 'login: missing password. Usage: login [password]' });
 					} else if (passwordAttempt === 'hackclub_rules') {
 						newHistory.push({ id: Date.now() + 1, type: 'system', text: 'Authentication successful. Admin access granted.' });
-						if (onSystemUpdate) onSystemUpdate('login', 'success');
+						if (onSystemUpdate) onSystemUpdate('login', 'success', currentPath);
 					} else {
 						newHistory.push({ id: Date.now() + 1, type: 'error', text: 'Access denied. Invalid password.' });
 					}
