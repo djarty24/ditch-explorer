@@ -3,6 +3,7 @@ import { Folder, FileText } from 'lucide-react';
 import Terminal from './components/Terminal';
 import ErrorModal from './components/ErrorModal';
 import SuccessModal from './components/SuccessModal';
+import MalwareModal from './components/MalwareModal';
 import Taskbar from './components/Taskbar';
 import Window from './components/Window';
 
@@ -13,6 +14,7 @@ export default function App() {
 
 	const [gameLevel, setGameLevel] = useState(1);
 	const [completedLevelAlert, setCompletedLevelAlert] = useState<number | null>(null);
+	const [showMalwarePopup, setShowMalwarePopup] = useState(false);
 
 	const handleAcknowledgeError = () => setIsSystemCrashed(false);
 
@@ -20,8 +22,15 @@ export default function App() {
 		if (completedLevelAlert === 1) openWindow('level-2');
 		if (completedLevelAlert === 2) openWindow('level-3');
 		if (completedLevelAlert === 3) openWindow('level-4');
-		if (completedLevelAlert === 4) openWindow('level-5');
+		if (completedLevelAlert === 4) {
+			setShowMalwarePopup(true);
+		}
 		setCompletedLevelAlert(null);
+	};
+
+	const handleAcknowledgeMalware = () => {
+		setShowMalwarePopup(false);
+		openWindow('level-5');
 	};
 
 	const openWindow = (id: string) => {
@@ -30,7 +39,7 @@ export default function App() {
 	};
 	const closeWindow = (id: string) => setOpenWindows(openWindows.filter(windowId => windowId !== id));
 
-	const handleSystemUpdate = (action: string, target: string) => {
+	const handleSystemUpdate = (action: string, target: string, path: string[]) => {
 		if (gameLevel === 1 && action === 'rm' && target === 'corrupted_file.sys') {
 			setGameLevel(2);
 			setCompletedLevelAlert(1);
@@ -51,12 +60,20 @@ export default function App() {
 			setCompletedLevelAlert(4);
 			closeWindow('level-4');
 		}
+		if (gameLevel === 5 && action === 'rm' && target === 'dolphin.exe') {
+			if (path[path.length - 1] === 'Trap') {
+				setGameLevel(6);
+				setCompletedLevelAlert(5);
+				closeWindow('level-5');
+			}
+		}
 	};
 
 	return (
 		<div className="h-screen w-screen flex flex-col scanlines">
 			{isSystemCrashed && <ErrorModal onAcknowledge={handleAcknowledgeError} />}
 			{completedLevelAlert !== null && <SuccessModal level={completedLevelAlert} onAcknowledge={handleAcknowledgeSuccess} />}
+			{showMalwarePopup && <MalwareModal onAcknowledge={handleAcknowledgeMalware} />}
 
 			<div className="flex-1 relative p-4">
 
@@ -108,17 +125,24 @@ export default function App() {
 					</div>
 				)}
 
+				{!isSystemCrashed && gameLevel >= 5 && (
+					<div className="flex flex-col items-center w-24 gap-1 text-white cursor-pointer hover:bg-win-hotpink/30 p-1 rounded absolute top-[31rem] left-4" onDoubleClick={() => openWindow('level-5')}>
+						<FileText size={40} className="text-white fill-white" />
+						<span className="bg-win-blue px-1 text-sm shadow-sm bg-red-600">level-5.txt</span>
+					</div>
+				)}
+
 				<Terminal onSystemUpdate={handleSystemUpdate} />
 
 				{openWindows.includes('about-me') && (
 					<Window
 						title="About_Me.txt - Notepad"
-						content={`Hi! I created Ditch Explorer to...\n\n[TBD]`}
+						content={`Hi! I created Ditch Explorer to...\n\n`}
 						onClose={() => closeWindow('about-me')}
+						positionClass="top-10 right-10 left-auto"
 					/>
 				)}
 
-				{/* Level 1 Window */}
 				{openWindows.includes('level-1') && (
 					<Window
 						title="level-1.txt - Notepad"
@@ -131,7 +155,6 @@ export default function App() {
 					/>
 				)}
 
-				{/* Level 2 Window */}
 				{openWindows.includes('level-2') && (
 					<Window
 						title="level-2.txt - Notepad"
@@ -145,7 +168,6 @@ export default function App() {
 					/>
 				)}
 
-				{/* Level 3 Window */}
 				{openWindows.includes('level-3') && (
 					<Window
 						title="level-3.txt - Notepad"
@@ -158,7 +180,6 @@ export default function App() {
 					/>
 				)}
 
-				{/* Level 4 Window */}
 				{openWindows.includes('level-4') && (
 					<Window
 						title="level-4.txt - Notepad"
@@ -169,6 +190,19 @@ export default function App() {
 							"Exact commands to run:\n\ncd C:\\\ncd System\ncd Logs\ncat server_logs.txt\nlogin hackclub_rules"
 						]}
 						onClose={() => closeWindow('level-4')}
+					/>
+				)}
+
+				{openWindows.includes('level-5') && (
+					<Window
+						title="level-5.txt - Notepad"
+						content={`CRITICAL ALERT: VIRUS INFECTION.\n\nDolphin.exe has hijacked the computer. You must hunt it down and delete it to save the system.\n\n1. Search the 'network_log.txt' file in the C:\\ folder for the word 'dolphin' to find out where it is hiding.\n2. Go to the folder where it is hiding.\n3. Do NOT delete it immediately! It will just clone itself. You must create a new folder named 'Trap'.\n4. Move 'dolphin.exe' into the 'Trap' folder.\n5. Go inside the 'Trap' folder and delete the virus.`}
+						hints={[
+							"Use 'cd ..' to go backwards if you are stuck in the Logs folder.",
+							"Use 'grep dolphin network_log.txt' to scan the network logs.",
+							"Exact commands to run:\n\ncd C:\\\ngrep dolphin network_log.txt\ncd Downloads\nmkdir Trap\nmv dolphin.exe Trap\ncd Trap\nrm dolphin.exe"
+						]}
+						onClose={() => closeWindow('level-5')}
 					/>
 				)}
 

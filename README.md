@@ -65,7 +65,11 @@ This is an hour by hour log of everything I worked on and when each feature was 
     * Mainly created a `MalwareModal.tsx` popup with instructions for the final level
     * Accumulation of all of the commands required
     * Updated props for the terminal
-9. 
+9. Finished implementing boss battle
+    * Fixed a loophole in the final boss fight
+    * Made it more challenging because incorrect commands cause virus to duplicate
+        * Virus will now laugh at them and instantly clone itself
+    * Added a way to control exactly where new windows pop up
 
 ---
 <div align="center">

@@ -122,16 +122,51 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 					const target = args[0];
 					if (!target) {
 						newHistory.push({ id: Date.now() + 1, type: 'output', text: currentPath.join('\\') });
-					} else if (target === '..') {
-						if (currentPath.length > 1) {
-							setCurrentPath(prev => prev.slice(0, -1));
-						}
-					} else if (currentDir[target] && currentDir[target].type === 'DIR') {
-						setCurrentPath(prev => [...prev, target]);
-					} else if (currentDir[target] && currentDir[target].type === 'FILE') {
-						newHistory.push({ id: Date.now() + 1, type: 'error', text: `cd: ${target}: Not a directory` });
 					} else {
-						newHistory.push({ id: Date.now() + 1, type: 'error', text: `cd: ${target}: No such file or directory` });
+						// NEW: Advanced Path Parsing
+						let tempPath = [...currentPath];
+						// Split by forward or backward slash
+						let parts = target.split(/[/\\]+/).filter(Boolean);
+
+						// Handle jumping straight to C:
+						if (target.toUpperCase().startsWith('C:')) {
+							tempPath = ['C:'];
+							if (parts[0].toUpperCase() === 'C:') parts.shift();
+						}
+
+						let isError = false;
+						let errorMsg = '';
+
+						for (const part of parts) {
+							if (part === '..') {
+								if (tempPath.length > 1) tempPath.pop();
+							} else if (part === '.') {
+								continue;
+							} else {
+								let nav: any = fileSystem;
+								for (const p of tempPath) {
+									if (nav[p]?.children) nav = nav[p].children;
+									else if (nav.children && nav.children[p]) nav = nav.children[p].children;
+								}
+								if (nav[part] && nav[part].type === 'DIR') {
+									tempPath.push(part);
+								} else if (nav[part] && nav[part].type === 'FILE') {
+									isError = true;
+									errorMsg = `cd: ${part}: Not a directory`;
+									break;
+								} else {
+									isError = true;
+									errorMsg = `cd: ${part}: No such file or directory`;
+									break;
+								}
+							}
+						}
+
+						if (isError) {
+							newHistory.push({ id: Date.now() + 1, type: 'error', text: errorMsg });
+						} else {
+							setCurrentPath(tempPath);
+						}
 					}
 					break;
 				case 'rm':
@@ -148,9 +183,28 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 								if (navTarget[folder]?.children) navTarget = navTarget[folder].children;
 								else if (navTarget.children && navTarget.children[folder]) navTarget = navTarget.children[folder].children;
 							}
-							delete navTarget[rmTarget];
-							setFileSystem(newFS);
-							if (onSystemUpdate) onSystemUpdate('rm', rmTarget, currentPath);
+
+							// NEW: The Dolphin Virus Duplication Logic
+							if (rmTarget.includes('dolphin')) {
+								if (currentPath[currentPath.length - 1] === 'Trap') {
+									// Successfully trapped! Delete it.
+									delete navTarget[rmTarget];
+									setFileSystem(newFS);
+									newHistory.push({ id: Date.now() + 1, type: 'system', text: 'DOLPHIN.EXE DELETED. SYSTEM SECURE.' });
+									if (onSystemUpdate) onSystemUpdate('rm', 'dolphin.exe', currentPath);
+								} else {
+									// Failed to trap it! Duplicate it.
+									const copyCount = Object.keys(navTarget).filter(k => k.includes('dolphin')).length;
+									navTarget[`dolphin_clone_${copyCount}.exe`] = { type: 'FILE', content: 'HAHAHA YOU CANNOT DEFEAT ME' };
+									setFileSystem(newFS);
+									newHistory.push({ id: Date.now() + 1, type: 'error', text: 'HAHAHA! YOU CANNOT DESTROY ME HERE! *clones self*' });
+								}
+							} else {
+								// Normal file deletion
+								delete navTarget[rmTarget];
+								setFileSystem(newFS);
+								if (onSystemUpdate) onSystemUpdate('rm', rmTarget, currentPath);
+							}
 						}
 					} else {
 						newHistory.push({ id: Date.now() + 1, type: 'error', text: `rm: cannot remove '${rmTarget}': No such file or directory` });
