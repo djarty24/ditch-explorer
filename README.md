@@ -81,7 +81,12 @@ This is an hour by hour log of everything I worked on and when each feature was 
         2. Key-clacks during text input
         3. Error sound for incorrect commands
         4. Success chime when a level is solved
-12. 
+12. Created a BIOS bootup animation
+    * Created `BootSequence.tsx` component
+    * Added the read in animation and switch screen
+    * Fixed mv command so that it works backwards as well
+        * Ex: Running `mv C:\Downloads` from Downloads\Graphics
+13. 
 
 ---
 <div align="center">

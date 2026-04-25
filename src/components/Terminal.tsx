@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Terminal as TerminalIcon } from 'lucide-react';
 import TypewriterText from './TypewriterText';
-import { playSound } from '../utils/soundEngine'; // <-- Sound Engine Imported!
+import { playSound } from '../utils/soundEngine';
 
 type FileNode = {
 	type: 'DIR' | 'FILE';
@@ -246,23 +246,61 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 						playSound('error');
 					} else {
 						const newFS = JSON.parse(JSON.stringify(fileSystem));
-						let navTarget: any = newFS;
+
+						// 1. Resolve Source Directory (Where we are)
+						let srcDir: any = newFS;
 						for (const folder of currentPath) {
-							if (navTarget[folder]?.children) navTarget = navTarget[folder].children;
-							else if (navTarget.children && navTarget.children[folder]) navTarget = navTarget.children[folder].children;
+							if (srcDir[folder]?.children) srcDir = srcDir[folder].children;
+							else if (srcDir.children && srcDir.children[folder]) srcDir = srcDir.children[folder].children;
 						}
-						if (!navTarget[src]) {
+
+						if (!srcDir[src]) {
 							newHistory.push({ id: Date.now() + 1, type: 'error', text: `mv: cannot stat '${src}': No such file` });
 							playSound('error');
-						} else if (!navTarget[dst] || navTarget[dst].type !== 'DIR') {
-							newHistory.push({ id: Date.now() + 1, type: 'error', text: `mv: cannot move to '${dst}': Not a directory` });
-							playSound('error');
 						} else {
-							if (!navTarget[dst].children) navTarget[dst].children = {};
-							navTarget[dst].children[src] = navTarget[src];
-							delete navTarget[src];
-							setFileSystem(newFS);
-							if (onSystemUpdate) onSystemUpdate('mv', src, currentPath);
+							// 2. Parse the Destination Path
+							let dstPathArray = [...currentPath];
+							let dstParts = dst.split(/[/\\]+/).filter(Boolean);
+
+							if (dst.toUpperCase().startsWith('C:')) {
+								dstPathArray = ['C:'];
+								if (dstParts[0] && dstParts[0].toUpperCase() === 'C:') dstParts.shift();
+							}
+
+							for (const part of dstParts) {
+								if (part === '..') {
+									if (dstPathArray.length > 1) dstPathArray.pop();
+								} else if (part === '.') {
+									continue;
+								} else {
+									dstPathArray.push(part);
+								}
+							}
+
+							// 3. Resolve Destination Directory
+							let dstDir: any = newFS;
+							let dstInvalid = false;
+							for (const p of dstPathArray) {
+								if (dstDir[p]?.children) {
+									dstDir = dstDir[p].children;
+								} else if (dstDir.children && dstDir.children[p]) {
+									dstDir = dstDir.children[p].children;
+								} else {
+									dstInvalid = true;
+									break;
+								}
+							}
+
+							if (dstInvalid) {
+								newHistory.push({ id: Date.now() + 1, type: 'error', text: `mv: cannot move to '${dst}': No such directory` });
+								playSound('error');
+							} else {
+								// 4. Perform the Move!
+								dstDir[src] = srcDir[src];
+								delete srcDir[src];
+								setFileSystem(newFS);
+								if (onSystemUpdate) onSystemUpdate('mv', src, currentPath);
+							}
 						}
 					}
 					break;
