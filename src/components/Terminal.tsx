@@ -184,14 +184,22 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 								else if (navTarget.children && navTarget.children[folder]) navTarget = navTarget.children[folder].children;
 							}
 
-							// NEW: The Dolphin Virus Duplication Logic
 							if (rmTarget.includes('dolphin')) {
 								if (currentPath[currentPath.length - 1] === 'Trap') {
-									// Successfully trapped! Delete it.
+									// They are in the Trap folder, allow deletion
 									delete navTarget[rmTarget];
 									setFileSystem(newFS);
-									newHistory.push({ id: Date.now() + 1, type: 'system', text: 'DOLPHIN.EXE DELETED. SYSTEM SECURE.' });
-									if (onSystemUpdate) onSystemUpdate('rm', 'dolphin.exe', currentPath);
+
+									// Check if they need to delete more clones!
+									const remainingDolphins = Object.keys(navTarget).filter(k => k.includes('dolphin')).length;
+
+									if (remainingDolphins === 0) {
+										newHistory.push({ id: Date.now() + 1, type: 'system', text: 'ALL VIRUS INSTANCES DESTROYED. SYSTEM SECURE.' });
+										if (onSystemUpdate) onSystemUpdate('rm', 'dolphin_eradicated', currentPath);
+									} else {
+										newHistory.push({ id: Date.now() + 1, type: 'output', text: `Virus instance deleted. ${remainingDolphins} clone(s) remain in this folder.` });
+										if (onSystemUpdate) onSystemUpdate('rm', rmTarget, currentPath);
+									}
 								} else {
 									// Failed to trap it! Duplicate it.
 									const copyCount = Object.keys(navTarget).filter(k => k.includes('dolphin')).length;
@@ -200,7 +208,6 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 									newHistory.push({ id: Date.now() + 1, type: 'error', text: 'HAHAHA! YOU CANNOT DESTROY ME HERE! *clones self*' });
 								}
 							} else {
-								// Normal file deletion
 								delete navTarget[rmTarget];
 								setFileSystem(newFS);
 								if (onSystemUpdate) onSystemUpdate('rm', rmTarget, currentPath);

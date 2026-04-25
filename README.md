@@ -70,6 +70,10 @@ This is an hour by hour log of everything I worked on and when each feature was 
     * Made it more challenging because incorrect commands cause virus to duplicate
         * Virus will now laugh at them and instantly clone itself
     * Added a way to control exactly where new windows pop up
+10. Upgraded boss level virus mechanics
+    * If a player makes a mistake and the virus duplicates, no longer lets them win by deleting one file
+    * Whenever a window is opened it now pushes itself to the top so that it isn't hidden
+    * Fixed level 5 challenge instructions
 
 ---
 <div align="center">
