@@ -54,8 +54,16 @@ interface TerminalProps {
 
 export default function Terminal({ onSystemUpdate }: TerminalProps) {
 	const [input, setInput] = useState('');
-	const [fileSystem, setFileSystem] = useState(initialFileSystem);
-	const [currentPath, setCurrentPath] = useState<string[]>(['C:']);
+
+	const [fileSystem, setFileSystem] = useState<Record<string, FileNode>>(() => {
+		const saved = localStorage.getItem('ditch-explorer-fs');
+		return saved ? JSON.parse(saved) : initialFileSystem;
+	});
+
+	const [currentPath, setCurrentPath] = useState<string[]>(() => {
+		const saved = localStorage.getItem('ditch-explorer-path');
+		return saved ? JSON.parse(saved) : ['C:'];
+	});
 
 	const [history, setHistory] = useState<HistoryLine[]>([
 		{ id: 1, type: 'system', text: 'Microsoft(R) Windows 98' },
@@ -65,6 +73,11 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 	]);
 
 	const bottomRef = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		localStorage.setItem('ditch-explorer-fs', JSON.stringify(fileSystem));
+		localStorage.setItem('ditch-explorer-path', JSON.stringify(currentPath));
+	}, [fileSystem, currentPath]);
 
 	useEffect(() => {
 		bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -98,7 +111,7 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 
 			switch (cmd.toLowerCase()) {
 				case 'help':
-					newHistory.push({ id: Date.now() + 1, type: 'output', text: 'Available commands: help, clear, echo, ls, cd, rm, mkdir, mv, ping, cat, grep, login, man' });
+					newHistory.push({ id: Date.now() + 1, type: 'output', text: 'Available commands: help, clear, echo, ls, cd, rm, mkdir, mv, ping, cat, grep, login, reset, man' });
 					break;
 				case 'clear':
 					setHistory(history.slice(0, 4));
@@ -129,7 +142,7 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 
 						if (target.toUpperCase().startsWith('C:')) {
 							tempPath = ['C:'];
-							if (parts[0].toUpperCase() === 'C:') parts.shift();
+							if (parts[0] && parts[0].toUpperCase() === 'C:') parts.shift();
 						}
 
 						let isError = false;
@@ -247,7 +260,6 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 					} else {
 						const newFS = JSON.parse(JSON.stringify(fileSystem));
 
-						// 1. Resolve Source Directory (Where we are)
 						let srcDir: any = newFS;
 						for (const folder of currentPath) {
 							if (srcDir[folder]?.children) srcDir = srcDir[folder].children;
@@ -258,7 +270,6 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 							newHistory.push({ id: Date.now() + 1, type: 'error', text: `mv: cannot stat '${src}': No such file` });
 							playSound('error');
 						} else {
-							// 2. Parse the Destination Path
 							let dstPathArray = [...currentPath];
 							let dstParts = dst.split(/[/\\]+/).filter(Boolean);
 
@@ -277,7 +288,6 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 								}
 							}
 
-							// 3. Resolve Destination Directory
 							let dstDir: any = newFS;
 							let dstInvalid = false;
 							for (const p of dstPathArray) {
@@ -295,7 +305,6 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 								newHistory.push({ id: Date.now() + 1, type: 'error', text: `mv: cannot move to '${dst}': No such directory` });
 								playSound('error');
 							} else {
-								// 4. Perform the Move!
 								dstDir[src] = srcDir[src];
 								delete srcDir[src];
 								setFileSystem(newFS);
@@ -376,6 +385,12 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 						playSound('error');
 					}
 					break;
+				case 'reset':
+					localStorage.removeItem('ditch-explorer-fs');
+					localStorage.removeItem('ditch-explorer-path');
+					localStorage.removeItem('ditch-explorer-level');
+					window.location.reload();
+					break;
 				case 'man':
 					const manualTarget = args[0];
 					if (!manualTarget) {
@@ -390,10 +405,11 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 							'rm': 'rm [file] - Removes a specified file.',
 							'mkdir': 'mkdir [dir] - Creates a new directory.',
 							'mv': 'mv [source] [destination] - Moves a file to a destination directory.',
-							'ping': 'ping [computer-name] - Sends a small test signal to another computer and waits for a reply to check if it is online and connected.',
+							'ping': 'ping [computer-name] - Sends a small test signal to another computer and waits for a reply.',
 							'cat': 'cat [file] - Reads a text file and prints everything inside it to the screen.',
 							'grep': 'grep [word] [file] - Searches inside a file and only prints the lines that contain the word you are looking for.',
 							'login': 'login [password] - A special system command used to unlock the computer.',
+							'reset': 'reset - Wipes all system memory and restarts the computer from scratch.',
 							'man': 'man [command] - Displays the manual for a given command.'
 						};
 						if (manuals[manualTarget]) {

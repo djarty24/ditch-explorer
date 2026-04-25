@@ -86,7 +86,11 @@ This is an hour by hour log of everything I worked on and when each feature was 
     * Added the read in animation and switch screen
     * Fixed mv command so that it works backwards as well
         * Ex: Running `mv C:\Downloads` from Downloads\Graphics
-13. 
+13. Created save states and cookies
+    * I learned how to use the localstorage API!
+    * If a player refreshes they will load right back in exactly where they left off
+    * Added a reset button to replay the game
+14. 
 
 ---
 <div align="center">

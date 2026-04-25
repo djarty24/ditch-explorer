@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Folder, FileText } from 'lucide-react';
 import Terminal from './components/Terminal';
 import ErrorModal from './components/ErrorModal';
@@ -15,9 +15,17 @@ export default function App() {
 	const [openWindows, setOpenWindows] = useState<string[]>([]);
 	const [showLevel1Hint, setShowLevel1Hint] = useState(true);
 
-	const [gameLevel, setGameLevel] = useState(1);
+	const [gameLevel, setGameLevel] = useState<number>(() => {
+		const saved = localStorage.getItem('ditch-explorer-level');
+		return saved ? parseInt(saved, 10) : 1;
+	});
+
 	const [completedLevelAlert, setCompletedLevelAlert] = useState<number | null>(null);
 	const [showMalwarePopup, setShowMalwarePopup] = useState(false);
+
+	useEffect(() => {
+		localStorage.setItem('ditch-explorer-level', gameLevel.toString());
+	}, [gameLevel]);
 
 	const handleAcknowledgeError = () => {
 		setIsSystemCrashed(false);
@@ -153,6 +161,7 @@ export default function App() {
 							/>
 						)}
 
+						{/* Level 1 Window */}
 						{openWindows.includes('level-1') && (
 							<Window
 								title="level-1.txt - Notepad"
@@ -164,6 +173,7 @@ export default function App() {
 							/>
 						)}
 
+						{/* Level 2 Window */}
 						{openWindows.includes('level-2') && (
 							<Window
 								title="level-2.txt - Notepad"
@@ -175,6 +185,7 @@ export default function App() {
 							/>
 						)}
 
+						{/* Level 3 Window */}
 						{openWindows.includes('level-3') && (
 							<Window
 								title="level-3.txt - Notepad"
@@ -186,6 +197,7 @@ export default function App() {
 							/>
 						)}
 
+						{/* Level 4 Window */}
 						{openWindows.includes('level-4') && (
 							<Window
 								title="level-4.txt - Notepad"
@@ -197,6 +209,7 @@ export default function App() {
 							/>
 						)}
 
+						{/* Level 5 Window */}
 						{openWindows.includes('level-5') && (
 							<Window
 								title="level-5.txt - Notepad"
