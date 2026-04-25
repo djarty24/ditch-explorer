@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Terminal as TerminalIcon } from 'lucide-react';
 import TypewriterText from './TypewriterText';
+import { playSound } from '../utils/soundEngine'; // <-- Sound Engine Imported!
 
 type FileNode = {
 	type: 'DIR' | 'FILE';
@@ -123,12 +124,9 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 					if (!target) {
 						newHistory.push({ id: Date.now() + 1, type: 'output', text: currentPath.join('\\') });
 					} else {
-						// NEW: Advanced Path Parsing
 						let tempPath = [...currentPath];
-						// Split by forward or backward slash
 						let parts = target.split(/[/\\]+/).filter(Boolean);
 
-						// Handle jumping straight to C:
 						if (target.toUpperCase().startsWith('C:')) {
 							tempPath = ['C:'];
 							if (parts[0].toUpperCase() === 'C:') parts.shift();
@@ -164,6 +162,7 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 
 						if (isError) {
 							newHistory.push({ id: Date.now() + 1, type: 'error', text: errorMsg });
+							playSound('error');
 						} else {
 							setCurrentPath(tempPath);
 						}
@@ -173,9 +172,11 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 					const rmTarget = args[0];
 					if (!rmTarget) {
 						newHistory.push({ id: Date.now() + 1, type: 'error', text: 'rm: missing operand' });
+						playSound('error');
 					} else if (currentDir[rmTarget]) {
 						if (currentDir[rmTarget].type === 'DIR') {
 							newHistory.push({ id: Date.now() + 1, type: 'error', text: `rm: cannot remove '${rmTarget}': Is a directory` });
+							playSound('error');
 						} else {
 							const newFS = JSON.parse(JSON.stringify(fileSystem));
 							let navTarget: any = newFS;
@@ -186,11 +187,9 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 
 							if (rmTarget.includes('dolphin')) {
 								if (currentPath[currentPath.length - 1] === 'Trap') {
-									// They are in the Trap folder, allow deletion
 									delete navTarget[rmTarget];
 									setFileSystem(newFS);
 
-									// Check if they need to delete more clones!
 									const remainingDolphins = Object.keys(navTarget).filter(k => k.includes('dolphin')).length;
 
 									if (remainingDolphins === 0) {
@@ -201,11 +200,11 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 										if (onSystemUpdate) onSystemUpdate('rm', rmTarget, currentPath);
 									}
 								} else {
-									// Failed to trap it! Duplicate it.
 									const copyCount = Object.keys(navTarget).filter(k => k.includes('dolphin')).length;
 									navTarget[`dolphin_clone_${copyCount}.exe`] = { type: 'FILE', content: 'HAHAHA YOU CANNOT DEFEAT ME' };
 									setFileSystem(newFS);
 									newHistory.push({ id: Date.now() + 1, type: 'error', text: 'HAHAHA! YOU CANNOT DESTROY ME HERE! *clones self*' });
+									playSound('error');
 								}
 							} else {
 								delete navTarget[rmTarget];
@@ -215,12 +214,14 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 						}
 					} else {
 						newHistory.push({ id: Date.now() + 1, type: 'error', text: `rm: cannot remove '${rmTarget}': No such file or directory` });
+						playSound('error');
 					}
 					break;
 				case 'mkdir':
 					const dirName = args[0];
 					if (!dirName) {
 						newHistory.push({ id: Date.now() + 1, type: 'error', text: 'mkdir: missing operand' });
+						playSound('error');
 					} else {
 						const newFS = JSON.parse(JSON.stringify(fileSystem));
 						let navTarget: any = newFS;
@@ -230,6 +231,7 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 						}
 						if (navTarget[dirName]) {
 							newHistory.push({ id: Date.now() + 1, type: 'error', text: `mkdir: cannot create directory '${dirName}': File exists` });
+							playSound('error');
 						} else {
 							navTarget[dirName] = { type: 'DIR', children: {} };
 							setFileSystem(newFS);
@@ -241,6 +243,7 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 					const dst = args[1];
 					if (!src || !dst) {
 						newHistory.push({ id: Date.now() + 1, type: 'error', text: 'mv: missing file operand' });
+						playSound('error');
 					} else {
 						const newFS = JSON.parse(JSON.stringify(fileSystem));
 						let navTarget: any = newFS;
@@ -250,8 +253,10 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 						}
 						if (!navTarget[src]) {
 							newHistory.push({ id: Date.now() + 1, type: 'error', text: `mv: cannot stat '${src}': No such file` });
+							playSound('error');
 						} else if (!navTarget[dst] || navTarget[dst].type !== 'DIR') {
 							newHistory.push({ id: Date.now() + 1, type: 'error', text: `mv: cannot move to '${dst}': Not a directory` });
+							playSound('error');
 						} else {
 							if (!navTarget[dst].children) navTarget[dst].children = {};
 							navTarget[dst].children[src] = navTarget[src];
@@ -265,6 +270,7 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 					const pingTarget = args[0];
 					if (!pingTarget) {
 						newHistory.push({ id: Date.now() + 1, type: 'error', text: 'ping: missing host operand' });
+						playSound('error');
 					} else {
 						newHistory.push({ id: Date.now() + 1, type: 'output', text: `Pinging ${pingTarget} with 32 bytes of data:` });
 						newHistory.push({ id: Date.now() + 2, type: 'output', text: `Reply from ${pingTarget}: bytes=32 time=14ms TTL=119` });
@@ -279,9 +285,11 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 					const catTarget = args[0];
 					if (!catTarget) {
 						newHistory.push({ id: Date.now() + 1, type: 'error', text: 'cat: missing file operand' });
+						playSound('error');
 					} else if (currentDir[catTarget]) {
 						if (currentDir[catTarget].type === 'DIR') {
 							newHistory.push({ id: Date.now() + 1, type: 'error', text: `cat: ${catTarget}: Is a directory` });
+							playSound('error');
 						} else {
 							const lines = currentDir[catTarget].content.split('\n');
 							lines.forEach((line: string, i: number) => {
@@ -290,6 +298,7 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 						}
 					} else {
 						newHistory.push({ id: Date.now() + 1, type: 'error', text: `cat: ${catTarget}: No such file or directory` });
+						playSound('error');
 					}
 					break;
 				case 'grep':
@@ -297,9 +306,11 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 					const grepFile = args[1];
 					if (!searchTerm || !grepFile) {
 						newHistory.push({ id: Date.now() + 1, type: 'error', text: 'grep: missing arguments. Usage: grep [word] [file]' });
+						playSound('error');
 					} else if (currentDir[grepFile]) {
 						if (currentDir[grepFile].type === 'DIR') {
 							newHistory.push({ id: Date.now() + 1, type: 'error', text: `grep: ${grepFile}: Is a directory` });
+							playSound('error');
 						} else {
 							const lines = currentDir[grepFile].content.split('\n');
 							const matches = lines.filter((line: string) => line.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -311,17 +322,20 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 						}
 					} else {
 						newHistory.push({ id: Date.now() + 1, type: 'error', text: `grep: ${grepFile}: No such file or directory` });
+						playSound('error');
 					}
 					break;
 				case 'login':
 					const passwordAttempt = args[0];
 					if (!passwordAttempt) {
 						newHistory.push({ id: Date.now() + 1, type: 'error', text: 'login: missing password. Usage: login [password]' });
+						playSound('error');
 					} else if (passwordAttempt === 'hackclub_rules') {
 						newHistory.push({ id: Date.now() + 1, type: 'system', text: 'Authentication successful. Admin access granted.' });
 						if (onSystemUpdate) onSystemUpdate('login', 'success', currentPath);
 					} else {
 						newHistory.push({ id: Date.now() + 1, type: 'error', text: 'Access denied. Invalid password.' });
+						playSound('error');
 					}
 					break;
 				case 'man':
@@ -348,11 +362,13 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 							newHistory.push({ id: Date.now() + 1, type: 'output', text: manuals[manualTarget] });
 						} else {
 							newHistory.push({ id: Date.now() + 1, type: 'error', text: `No manual entry for ${manualTarget}` });
+							playSound('error');
 						}
 					}
 					break;
 				default:
 					newHistory.push({ id: Date.now() + 1, type: 'error', text: `Bad command or file name: "${cmd}"` });
+					playSound('error');
 			}
 
 			setHistory(newHistory);
@@ -386,7 +402,10 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 						id="cli-input"
 						type="text"
 						value={input}
-						onChange={(e) => setInput(e.target.value)}
+						onChange={(e) => {
+							setInput(e.target.value);
+							playSound('keypress');
+						}}
 						onKeyDown={handleCommand}
 						className="bg-transparent border-none outline-none text-gray-300 flex-1 caret-gray-300"
 						autoFocus autoComplete="off" spellCheck="false"

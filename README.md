@@ -74,6 +74,14 @@ This is an hour by hour log of everything I worked on and when each feature was 
     * If a player makes a mistake and the virus duplicates, no longer lets them win by deleting one file
     * Whenever a window is opened it now pushes itself to the top so that it isn't hidden
     * Fixed level 5 challenge instructions
+11. Added music and sound effects
+    * Built a `soundEngine` utility to manage mp3 audio
+    * Added sound effects:
+        1. Retro startup chime upon initializing
+        2. Key-clacks during text input
+        3. Error sound for incorrect commands
+        4. Success chime when a level is solved
+12. 
 
 ---
 <div align="center">

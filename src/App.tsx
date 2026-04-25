@@ -6,6 +6,7 @@ import SuccessModal from './components/SuccessModal';
 import MalwareModal from './components/MalwareModal';
 import Taskbar from './components/Taskbar';
 import Window from './components/Window';
+import { playSound } from './utils/soundEngine';
 
 export default function App() {
 	const [isSystemCrashed, setIsSystemCrashed] = useState(true);
@@ -16,7 +17,10 @@ export default function App() {
 	const [completedLevelAlert, setCompletedLevelAlert] = useState<number | null>(null);
 	const [showMalwarePopup, setShowMalwarePopup] = useState(false);
 
-	const handleAcknowledgeError = () => setIsSystemCrashed(false);
+	const handleAcknowledgeError = () => {
+		setIsSystemCrashed(false);
+		playSound('startup');
+	};
 
 	const handleAcknowledgeSuccess = () => {
 		if (completedLevelAlert === 1) openWindow('level-2');
@@ -31,7 +35,6 @@ export default function App() {
 		openWindow('level-5');
 	};
 
-	// NEW: Shifts a window ID to the end of the array so it gets the highest z-index
 	const focusWindow = (id: string) => {
 		setOpenWindows(prev => {
 			if (prev[prev.length - 1] === id) return prev;
@@ -48,25 +51,29 @@ export default function App() {
 
 	const handleSystemUpdate = (action: string, target: string, path: string[]) => {
 		if (gameLevel === 1 && action === 'rm' && target === 'corrupted_file.sys') {
-			setGameLevel(2); setCompletedLevelAlert(1); closeWindow('level-1');
+		setGameLevel(2); setCompletedLevelAlert(1); closeWindow('level-1');
+		playSound('success');
 		}
 		if (gameLevel === 2 && action === 'mv' && target === 'display.dll') {
-			setGameLevel(3); setCompletedLevelAlert(2); closeWindow('level-2');
+		setGameLevel(3); setCompletedLevelAlert(2); closeWindow('level-2');
+		playSound('success');
 		}
 		if (gameLevel === 3 && action === 'ping' && target === 'server') {
-			setGameLevel(4); setCompletedLevelAlert(3); closeWindow('level-3');
+		setGameLevel(4); setCompletedLevelAlert(3); closeWindow('level-3');
+		playSound('success');
 		}
 		if (gameLevel === 4 && action === 'login' && target === 'success') {
-			setGameLevel(5); setCompletedLevelAlert(4); closeWindow('level-4');
+		setGameLevel(5); setCompletedLevelAlert(4); closeWindow('level-4');
+		playSound('success');
 		}
-		// NEW: Target checks for 'dolphin_eradicated' instead of just a single file
 		if (gameLevel === 5 && action === 'rm' && target === 'dolphin_eradicated') {
-			if (path[path.length - 1] === 'Trap') {
-				setGameLevel(6); setCompletedLevelAlert(5); closeWindow('level-5');
-			}
+		if (path[path.length - 1] === 'Trap') {
+			setGameLevel(6); setCompletedLevelAlert(5); closeWindow('level-5');
+			playSound('success');
+		}
 		}
 	};
-
+	
 	return (
 		<div className="h-screen w-screen flex flex-col scanlines">
 			{isSystemCrashed && <ErrorModal onAcknowledge={handleAcknowledgeError} />}
