@@ -207,7 +207,7 @@ export default function App() {
 								<Window
 									title="level-1.txt - Notepad"
 									content={`SYSTEM ALERT: Start-up error.\n\nThere is a broken file stopping the computer from starting up properly. We need to throw it in the trash.\n\n1. Open the terminal.\n2. Go into the C:\\System\\Boot folder.\n3. Delete the file named 'corrupted_file.sys'.`}
-									hints={["The command line has a built-in manual. Run 'man [command-name]' to see what a command does.", "Exact commands:\ncd System\ncd Boot\nrm corrupted_file.sys"]}
+									hints={["The command line has a built-in manual. Run 'man [command-name]' to see what a command does.", "Exact commands:\ncd Boot\nrm corrupted_file.sys"]}
 									onClose={() => closeWindow('level-1')}
 									zIndex={40 + openWindows.indexOf('level-1')}
 									onFocus={() => focusWindow('level-1')}

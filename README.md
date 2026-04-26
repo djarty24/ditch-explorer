@@ -2,10 +2,14 @@
 
 An interactive, Windows 98 themed game to teach terminal commands! It follows a storyline where players need to fix a crashed computer system.
 
-## Features [WIP]
-**yada yada yada**
-* describe
-* describe
+## Features
+* A terminal where you can type commands to explore the computer
+* An interactive desktop with ability to open, close, drag windows across the screen
+* 5 unique challenges of increasing difficulty + a final boss battle!
+* A built in text editor
+* The game automatically saves your progress in the background
+* Packed with secret commands and a themed boot sequence
+* A certificate of completion at the end
 
 ## Tech Stack
 A list of the toools used to build New Leaf:
@@ -22,7 +26,7 @@ A list of the toools used to build New Leaf:
 5. 98.css
     * A styling library for adding the retro Windows 98 aesthetic to the game
 6. React Draggable
-    * description
+    * A library to wrap any item on in a movable container
 
 ## Developer Log (for Hack Club's Sleepover event!)
 This is an hour by hour log of everything I worked on and when each feature was implemented.
@@ -102,6 +106,10 @@ This is an hour by hour log of everything I worked on and when each feature was 
     * Added the player's custom name into the localStorage memory
     * Finished designing the favicon
     * Filled in the About window with info
+17. Final steps
+    * Ran `npm run build` to ensure deployment succeeds
+    * Deployed Ditch Explorer on Vercel
+    * Finalized the README
 
 ---
 <div align="center">
