@@ -97,7 +97,11 @@ This is an hour by hour log of everything I worked on and when each feature was 
     * Added a nano inspired text editor to edit files
     * Users can now write, edit, and save files directly to localStorage
     * via the `edit [filename]` command
-16. 
+16. Created Certificate of Completion
+    * Players are prompted via a modal to input their name
+    * Added the player's custom name into the localStorage memory
+    * Finished designing the favicon
+    * Filled in the About window with info
 
 ---
 <div align="center">

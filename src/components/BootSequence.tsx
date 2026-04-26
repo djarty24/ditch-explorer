@@ -42,9 +42,9 @@ export default function BootSequence({ onComplete }: BootSequenceProps) {
 	}, [onComplete]);
 
 	return (
-		<div className="absolute inset-0 bg-black z-[200] p-4 font-mono text-gray-300 text-sm flex flex-col w-full h-full">
+		<div className="absolute inset-0 bg-black z-200 p-4 font-mono text-gray-300 text-sm flex flex-col w-full h-full">
 			{lines.map((line, i) => (
-				<div key={i} className="min-h-[1.25rem] whitespace-pre-wrap">{line}</div>
+				<div key={i} className="min-h-5 whitespace-pre-wrap">{line}</div>
 			))}
 			<div className="animate-pulse w-2 h-4 bg-gray-300 mt-1"></div>
 		</div> 

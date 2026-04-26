@@ -7,8 +7,8 @@ interface SuccessModalProps {
 
 export default function SuccessModal({ level, onAcknowledge }: SuccessModalProps) {
   return (
-    <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/20 backdrop-blur-sm">
-      <div className="w-[350px] bg-win-gray border-t-2 border-l-2 border-white border-b-black border-r-black shadow-[2px_2px_0px_rgba(0,0,0,0.5)] flex flex-col">
+    <div className="absolute inset-0 z-100 flex items-center justify-center bg-black/20 backdrop-blur-sm">
+      <div className="w-87.5 bg-win-gray border-t-2 border-l-2 border-white border-b-black border-r-black shadow-[2px_2px_0px_rgba(0,0,0,0.5)] flex flex-col">
         
         <div className="bg-win-blue text-white flex justify-between items-center px-1 py-1 font-bold tracking-wide">
           <span className="text-sm">System Notification</span>

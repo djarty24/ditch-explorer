@@ -48,7 +48,7 @@ export default function Window({ title, content, hints, onClose, positionClass, 
 					</button>
 				</div>
 
-				<div className="bg-white p-2 m-[2px] min-h-[16rem] max-h-96 overflow-y-auto font-mono text-sm border-t-black border-l-black border-b-white border-r-white border-2 text-black flex flex-col gap-4">
+				<div className="bg-white p-2 m-0.5 min-h-64 max-h-96 overflow-y-auto font-mono text-sm border-t-black border-l-black border-b-white border-r-white border-2 text-black flex flex-col gap-4">
 					<p className="whitespace-pre-wrap">{content}</p>
 
 					{hints && hints.length > 0 && (

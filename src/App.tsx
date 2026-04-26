@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Folder, FileText, MonitorX } from 'lucide-react';
+import { Folder, FileText, MonitorX, Award } from 'lucide-react';
 import Terminal from './components/Terminal';
 import ErrorModal from './components/ErrorModal';
 import SuccessModal from './components/SuccessModal';
@@ -7,6 +7,8 @@ import MalwareModal from './components/MalwareModal';
 import Taskbar from './components/Taskbar';
 import Window from './components/Window';
 import BootSequence from './components/BootSequence';
+import NamePromptModal from './components/NamePromptModal';
+import CertificateWindow from './components/CertificateWindow';
 import { playSound } from './utils/soundEngine';
 
 export default function App() {
@@ -20,12 +22,18 @@ export default function App() {
 		return saved ? parseInt(saved, 10) : 1;
 	});
 
+	const [playerName, setPlayerName] = useState<string>(() => {
+		return localStorage.getItem('ditch-explorer-name') || '';
+	});
+
+	const [showNamePrompt, setShowNamePrompt] = useState(false);
 	const [completedLevelAlert, setCompletedLevelAlert] = useState<number | null>(null);
 	const [showMalwarePopup, setShowMalwarePopup] = useState(false);
 
 	useEffect(() => {
 		localStorage.setItem('ditch-explorer-level', gameLevel.toString());
-	}, [gameLevel]);
+		localStorage.setItem('ditch-explorer-name', playerName);
+	}, [gameLevel, playerName]);
 
 	const handleAcknowledgeError = () => {
 		setIsSystemCrashed(false);
@@ -37,7 +45,19 @@ export default function App() {
 		if (completedLevelAlert === 2) openWindow('level-3');
 		if (completedLevelAlert === 3) openWindow('level-4');
 		if (completedLevelAlert === 4) setShowMalwarePopup(true);
+		if (completedLevelAlert === 5) {
+			if (!playerName) setShowNamePrompt(true);
+			else openWindow('certificate');
+		}
 		setCompletedLevelAlert(null);
+	};
+
+	const handleNameSubmit = (inputName: string) => {
+		const finalName = inputName.trim() || 'Master Hacker';
+		setPlayerName(finalName);
+		setShowNamePrompt(false);
+		openWindow('certificate');
+		playSound('startup');
 	};
 
 	const handleAcknowledgeMalware = () => {
@@ -61,25 +81,20 @@ export default function App() {
 
 	const handleSystemUpdate = (action: string, target: string, path: string[]) => {
 		if (gameLevel === 1 && action === 'rm' && target === 'corrupted_file.sys') {
-			setGameLevel(2); setCompletedLevelAlert(1); closeWindow('level-1');
-			playSound('success');
+			setGameLevel(2); setCompletedLevelAlert(1); closeWindow('level-1'); playSound('success');
 		}
 		if (gameLevel === 2 && action === 'mv' && target === 'display.dll') {
-			setGameLevel(3); setCompletedLevelAlert(2); closeWindow('level-2');
-			playSound('success');
+			setGameLevel(3); setCompletedLevelAlert(2); closeWindow('level-2'); playSound('success');
 		}
 		if (gameLevel === 3 && action === 'ping' && target === 'server') {
-			setGameLevel(4); setCompletedLevelAlert(3); closeWindow('level-3');
-			playSound('success');
+			setGameLevel(4); setCompletedLevelAlert(3); closeWindow('level-3'); playSound('success');
 		}
 		if (gameLevel === 4 && action === 'login' && target === 'success') {
-			setGameLevel(5); setCompletedLevelAlert(4); closeWindow('level-4');
-			playSound('success');
+			setGameLevel(5); setCompletedLevelAlert(4); closeWindow('level-4'); playSound('success');
 		}
 		if (gameLevel === 5 && action === 'rm' && target === 'dolphin_eradicated') {
 			if (path[path.length - 1] === 'Trap') {
-				setGameLevel(6); setCompletedLevelAlert(5); closeWindow('level-5');
-				playSound('success');
+				setGameLevel(6); setCompletedLevelAlert(5); closeWindow('level-5'); playSound('success');
 			}
 		}
 	};
@@ -103,6 +118,7 @@ export default function App() {
 						{isSystemCrashed && <ErrorModal onAcknowledge={handleAcknowledgeError} />}
 						{completedLevelAlert !== null && <SuccessModal level={completedLevelAlert} onAcknowledge={handleAcknowledgeSuccess} />}
 						{showMalwarePopup && <MalwareModal onAcknowledge={handleAcknowledgeMalware} />}
+						{showNamePrompt && <NamePromptModal onSubmit={handleNameSubmit} />}
 
 						<div className="flex-1 relative p-4">
 
@@ -115,6 +131,13 @@ export default function App() {
 								<div className="flex flex-col items-center w-24 gap-1 text-white cursor-pointer hover:bg-win-hotpink/30 p-1 rounded absolute top-4 right-4" onDoubleClick={() => openWindow('about-me')}>
 									<Folder size={40} className="fill-blue-500 text-blue-700" />
 									<span className="bg-win-blue px-1 text-sm shadow-sm">About Me</span>
+								</div>
+							)}
+
+							{!isSystemCrashed && gameLevel >= 6 && (
+								<div className="flex flex-col items-center w-24 gap-1 text-white cursor-pointer hover:bg-win-hotpink/30 p-1 rounded absolute top-4 left-32" onDoubleClick={() => openWindow('certificate')}>
+									<Award size={40} className="text-yellow-400 fill-yellow-200 drop-shadow-md" />
+									<span className="bg-win-blue px-1 text-sm shadow-sm font-bold">Award.exe</span>
 								</div>
 							)}
 
@@ -168,6 +191,15 @@ export default function App() {
 									positionClass="top-10 right-10 left-auto"
 									zIndex={40 + openWindows.indexOf('about-me')}
 									onFocus={() => focusWindow('about-me')}
+								/>
+							)}
+
+							{openWindows.includes('certificate') && (
+								<CertificateWindow
+									playerName={playerName}
+									onClose={() => closeWindow('certificate')}
+									zIndex={40 + openWindows.indexOf('certificate')}
+									onFocus={() => focusWindow('certificate')}
 								/>
 							)}
 

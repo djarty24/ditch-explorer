@@ -7,7 +7,7 @@ interface Props {
 export default function ErrorModal({ onAcknowledge }: Props) {
 	return (
 		<div className="absolute inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
-			<div className="w-[400px] bg-win-gray border-t-2 border-l-2 border-white border-b-black border-r-black shadow-[2px_2px_0px_rgba(0,0,0,0.5)] flex flex-col">
+			<div className="w-100 bg-win-gray border-t-2 border-l-2 border-white border-b-black border-r-black shadow-[2px_2px_0px_rgba(0,0,0,0.5)] flex flex-col">
 
 				<div className="bg-win-blue text-white flex justify-between items-center px-1 py-1 font-bold tracking-wide">
 					<span className="text-sm">System Error</span>
