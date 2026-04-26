@@ -93,7 +93,11 @@ This is an hour by hour log of everything I worked on and when each feature was 
 14. Added hidden commands (just for fun!) and a mobile browser warning
     * Added 5 secret commands (sudo, whoami, hack, pizza, and format c:)
     * Created blue screen of death warning for mobile windows
-15. 
+15. Text editor feature
+    * Added a nano inspired text editor to edit files
+    * Users can now write, edit, and save files directly to localStorage
+    * via the `edit [filename]` command
+16. 
 
 ---
 <div align="center">

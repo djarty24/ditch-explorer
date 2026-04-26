@@ -55,6 +55,8 @@ interface TerminalProps {
 export default function Terminal({ onSystemUpdate }: TerminalProps) {
 	const [input, setInput] = useState('');
 
+	const [editingFile, setEditingFile] = useState<{ name: string, content: string } | null>(null);
+
 	const [fileSystem, setFileSystem] = useState<Record<string, FileNode>>(() => {
 		const saved = localStorage.getItem('ditch-explorer-fs');
 		return saved ? JSON.parse(saved) : initialFileSystem;
@@ -80,8 +82,8 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 	}, [fileSystem, currentPath]);
 
 	useEffect(() => {
-		bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-	}, [history]);
+		if (!editingFile) bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+	}, [history, editingFile]);
 
 	const getCurrentDir = () => {
 		let current: any = fileSystem;
@@ -93,6 +95,27 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 			}
 		}
 		return current;
+	};
+
+	const handleSaveEdit = () => {
+		if (!editingFile) return;
+
+		const newFS = JSON.parse(JSON.stringify(fileSystem));
+		let navTarget: any = newFS;
+		for (const folder of currentPath) {
+			if (navTarget[folder]?.children) navTarget = navTarget[folder].children;
+			else if (navTarget.children && navTarget.children[folder]) navTarget = navTarget.children[folder].children;
+		}
+
+		navTarget[editingFile.name] = { type: 'FILE', content: editingFile.content };
+		setFileSystem(newFS);
+		setEditingFile(null);
+
+		setHistory(prev => [
+			...prev,
+			{ id: Date.now(), type: 'system', text: `Saved ${editingFile.name}.` }
+		]);
+		playSound('success');
 	};
 
 	const handleCommand = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -110,8 +133,9 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 			const currentDir = getCurrentDir();
 
 			switch (cmd.toLowerCase()) {
+				// ... (Keep ALL your existing commands here: help, clear, cd, rm, mv, cat, grep, login, etc) ...
 				case 'help':
-					newHistory.push({ id: Date.now() + 1, type: 'output', text: 'Available commands: help, clear, echo, ls, cd, rm, mkdir, mv, ping, cat, grep, login, reset, man' });
+					newHistory.push({ id: Date.now() + 1, type: 'output', text: 'Available commands: help, clear, echo, ls, cd, rm, mkdir, mv, ping, cat, grep, login, edit, reset, man' });
 					break;
 				case 'clear':
 					setHistory(history.slice(0, 4));
@@ -386,6 +410,7 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 					}
 					break;
 
+				/* Secret Commands */
 				case 'sudo':
 					newHistory.push({ id: Date.now() + 1, type: 'error', text: 'User is not in the sudoers file. This incident will be reported to Orpheus.' });
 					playSound('error');
@@ -424,6 +449,23 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 					localStorage.removeItem('ditch-explorer-level');
 					window.location.reload();
 					break;
+
+				case 'edit':
+					const editTarget = args[0];
+					if (!editTarget) {
+						newHistory.push({ id: Date.now() + 1, type: 'error', text: 'edit: missing file operand' });
+						playSound('error');
+					} else if (currentDir[editTarget] && currentDir[editTarget].type === 'DIR') {
+						newHistory.push({ id: Date.now() + 1, type: 'error', text: `edit: ${editTarget}: Is a directory` });
+						playSound('error');
+					} else {
+						setEditingFile({
+							name: editTarget,
+							content: currentDir[editTarget] ? currentDir[editTarget].content || '' : ''
+						});
+					}
+					break;
+
 				case 'man':
 					const manualTarget = args[0];
 					if (!manualTarget) {
@@ -443,6 +485,7 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 							'grep': 'grep [word] [file] - Searches inside a file and only prints the lines that contain the word you are looking for.',
 							'login': 'login [password] - A special system command used to unlock the computer.',
 							'reset': 'reset - Wipes all system memory and restarts the computer from scratch.',
+							'edit': 'edit [file] - Opens the text editor to create or modify a file.',
 							'man': 'man [command] - Displays the manual for a given command.'
 						};
 						if (manuals[manualTarget]) {
@@ -458,13 +501,15 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 					playSound('error');
 			}
 
-			setHistory(newHistory);
+			if (cmd.toLowerCase() !== 'edit') {
+				setHistory(newHistory);
+			}
 			setInput('');
 		}
 	};
 
 	return (
-		<div className="absolute top-1/4 left-1/4 w-[600px] bg-win-gray border-t-2 border-l-2 border-white border-b-black border-r-black shadow-[2px_2px_0px_rgba(0,0,0,0.5)] flex flex-col z-10">
+		<div className="absolute top-1/4 left-1/4 w-150 bg-win-gray border-t-2 border-l-2 border-white border-b-black border-r-black shadow-[2px_2px_0px_rgba(0,0,0,0.5)] flex flex-col z-10">
 			<div className="bg-win-blue text-white flex justify-between items-center px-1 py-1 font-bold tracking-wide">
 				<div className="flex items-center gap-2">
 					<TerminalIcon size={16} />
@@ -476,30 +521,63 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 				</div>
 			</div>
 
-			<div className="bg-black h-80 p-2 font-mono text-sm overflow-y-auto" onClick={() => document.getElementById('cli-input')?.focus()}>
-				{history.map((line) => (
-					<div key={line.id} className={`mb-1 ${line.type === 'error' ? 'text-win-hotpink font-bold' : 'text-gray-300'}`}>
-						{line.type === 'input' ? line.text : <TypewriterText text={line.text} delay={5} />}
+			{editingFile ? (
+				<div className="h-80 flex flex-col bg-blue-900 text-gray-100 font-mono text-sm">
+					<div className="bg-gray-300 text-black px-2 py-1 font-bold flex justify-between shadow-sm">
+						<span>DitchEditor v1.0</span>
+						<span>File: {editingFile.name}</span>
 					</div>
-				))}
-
-				<div className="flex text-gray-300 mt-1">
-					<span className="mr-2">{currentPath.join('\\')}&gt;</span>
-					<input
-						id="cli-input"
-						type="text"
-						value={input}
-						onChange={(e) => {
-							setInput(e.target.value);
-							playSound('keypress');
-						}}
-						onKeyDown={handleCommand}
-						className="bg-transparent border-none outline-none text-gray-300 flex-1 caret-gray-300"
-						autoFocus autoComplete="off" spellCheck="false"
+					<textarea
+						className="flex-1 bg-blue-900 text-white p-2 outline-none resize-none"
+						value={editingFile.content}
+						onChange={(e) => setEditingFile({ ...editingFile, content: e.target.value })}
+						autoFocus
+						spellCheck="false"
 					/>
+					<div className="bg-gray-300 text-black px-2 py-1 font-bold text-xs flex justify-between items-center border-t-2 border-white">
+						<span>Make your changes.</span>
+						<div className="flex gap-2">
+							<button
+								onClick={() => setEditingFile(null)}
+								className="bg-win-gray text-black border-t-white border-l-white border-b-black border-r-black border-2 px-2 active:border-t-black active:border-l-black active:border-b-white active:border-r-white"
+							>
+								Cancel
+							</button>
+							<button
+								onClick={handleSaveEdit}
+								className="bg-win-gray text-black border-t-white border-l-white border-b-black border-r-black border-2 px-2 active:border-t-black active:border-l-black active:border-b-white active:border-r-white font-black"
+							>
+								Save
+							</button>
+						</div>
+					</div>
 				</div>
-				<div ref={bottomRef} />
-			</div>
+			) : (
+				<div className="bg-black h-80 p-2 font-mono text-sm overflow-y-auto" onClick={() => document.getElementById('cli-input')?.focus()}>
+					{history.map((line) => (
+						<div key={line.id} className={`mb-1 ${line.type === 'error' ? 'text-win-hotpink font-bold' : 'text-gray-300'}`}>
+							{line.type === 'input' ? line.text : <TypewriterText text={line.text} delay={5} />}
+						</div>
+					))}
+
+					<div className="flex text-gray-300 mt-1">
+						<span className="mr-2">{currentPath.join('\\')}&gt;</span>
+						<input
+							id="cli-input"
+							type="text"
+							value={input}
+							onChange={(e) => {
+								setInput(e.target.value);
+								playSound('keypress');
+							}}
+							onKeyDown={handleCommand}
+							className="bg-transparent border-none outline-none text-gray-300 flex-1 caret-gray-300"
+							autoFocus autoComplete="off" spellCheck="false"
+						/>
+					</div>
+					<div ref={bottomRef} />
+				</div>
+			)}
 		</div>
 	);
 }
