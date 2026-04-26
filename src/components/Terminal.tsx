@@ -385,6 +385,39 @@ export default function Terminal({ onSystemUpdate }: TerminalProps) {
 						playSound('error');
 					}
 					break;
+
+				case 'sudo':
+					newHistory.push({ id: Date.now() + 1, type: 'error', text: 'User is not in the sudoers file. This incident will be reported to Orpheus.' });
+					playSound('error');
+					break;
+				case 'whoami':
+					newHistory.push({ id: Date.now() + 1, type: 'output', text: 'You are a sleep-deprived coder at the Hack Club Sleepover.' });
+					break;
+				case 'hack':
+					newHistory.push({ id: Date.now() + 1, type: 'output', text: 'Hacking the mainframe... Bypassing firewalls... Access Granted.' });
+					newHistory.push({ id: Date.now() + 2, type: 'output', text: '(Just kidding. Go solve the puzzles).' });
+					break;
+				case 'pizza':
+					const pizzaArt = [
+						"   //\"\"\"\"\"\\\\",
+						"  // (.)   \\\\",
+						" //    (.)  \\\\",
+						"//(.)     (.)\\\\",
+						"||===========||"
+					];
+					pizzaArt.forEach((line, i) => newHistory.push({ id: Date.now() + 1 + i, type: 'output', text: line }));
+					newHistory.push({ id: Date.now() + 10, type: 'output', text: 'Midnight fuel deployed.' });
+					break;
+				case 'format':
+					if (args[0]?.toLowerCase() === 'c:') {
+						newHistory.push({ id: Date.now() + 1, type: 'error', text: 'CRITICAL ERROR: Are you crazy?! I am not letting you wipe the hard drive!' });
+						playSound('error');
+					} else {
+						newHistory.push({ id: Date.now() + 1, type: 'error', text: 'Bad command or file name' });
+						playSound('error');
+					}
+					break;
+
 				case 'reset':
 					localStorage.removeItem('ditch-explorer-fs');
 					localStorage.removeItem('ditch-explorer-path');

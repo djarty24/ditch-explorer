@@ -87,10 +87,13 @@ This is an hour by hour log of everything I worked on and when each feature was 
     * Fixed mv command so that it works backwards as well
         * Ex: Running `mv C:\Downloads` from Downloads\Graphics
 13. Created save states and cookies
-    * I learned how to use the localstorage API!
+    * I learned how to use the localstorage API
     * If a player refreshes they will load right back in exactly where they left off
     * Added a reset button to replay the game
-14. 
+14. Added hidden commands (just for fun!) and a mobile browser warning
+    * Added 5 secret commands (sudo, whoami, hack, pizza, and format c:)
+    * Created blue screen of death warning for mobile windows
+15. 
 
 ---
 <div align="center">
